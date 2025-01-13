@@ -5,7 +5,6 @@ import tracemalloc
 class Prim:
     def __init__(self, graph):
         self.graph = graph
-        #new
         self.validator = GraphValidator()
         
     def min_spanning_tree(self):
@@ -64,47 +63,88 @@ class Prim:
 
         return mst, total_cost
 
-#new
+# new
+class GraphError(Exception):
+    """Базовый класс для ошибок графа"""
+
+    def __init__(self, message, details=None):
+        super().__init__(message)
+        self.details = details or "Нет дополнительной информации"
+
+
+class EmptyGraphError(GraphError):
+    """Ошибка пустого графа"""
+    pass
+
+
+class IsolatedVertexError(GraphError):
+    """Ошибка изолированной вершины"""
+    pass
+
+
+class DisconnectedGraphError(GraphError):
+    """Ошибка несвязного графа"""
+    pass
+
+
+class InvalidWeightError(GraphError):
+    """Ошибка некорректного веса"""
+    pass
+
+
+class AsymmetricEdgeError(GraphError):
+    """Ошибка несимметричного ребра"""
+    pass
+
+
 class GraphValidator:
     @staticmethod
     def validate_graph(graph):
-        """
-        Проверяет граф на корректность:
-        1. Проверка на пустой граф
-        2. Проверка на изолированные вершины
-        3. Проверка на связность графа
-        4. Проверка на корректность весов
-        """
+        """Проверяет граф на корректность"""
         if not graph:
-            raise ValueError("Граф пуст")
+            raise EmptyGraphError(
+                "Граф пуст",
+                "График должен содержать хотя бы одну вершину и ребро"
+            )
 
         # Проверка на изолированные вершины
         for vertex, edges in graph.items():
             if not edges:
-                raise ValueError(f"Вершина {vertex} изолирована")
+                raise IsolatedVertexError(
+                    f"Обнаружена изолированная вершина: {vertex}",
+                    "Каждая вершина должна иметь хотя бы одно ребро"
+                )
 
         # Проверка на связность графа
         if not GraphValidator.is_connected(graph):
-            raise ValueError("Граф несвязный")
+            raise DisconnectedGraphError(
+                "Граф несвязный",
+                "Должен существовать путь между любыми двумя вершинами графа"
+            )
 
-        # Проверка на корректность весов
+        # Проверка на корректность весов и симметричность рёбер
         for vertex, edges in graph.items():
             for target, weight in edges.items():
                 if not isinstance(weight, (int, float)):
-                    raise ValueError(f"Некорректный вес ребра между {vertex} и {target}")
-                # Проверка на симметричность рёбер
+                    raise InvalidWeightError(
+                        f"Некорректный вес ребра между {vertex} и {target}",
+                        "Вес ребра должен быть числом"
+                    )
+
                 if target not in graph or vertex not in graph[target] or graph[target][vertex] != weight:
-                    raise ValueError(f"Несимметричное ребро между {vertex} и {target}")
+                    raise AsymmetricEdgeError(
+                        f"Несимметричное ребро между {vertex} и {target}",
+                        "В неориентированном графе каждое ребро должно быть двунаправленным с одинаковым весом"
+                    )
 
     @staticmethod
     def is_connected(graph):
-        """
-        Проверяет связность графа с помощью поиска в глубину
-        """
+        """Проверяет связность графа"""
         if not graph:
             return True
 
         visited = set()
+        start_vertex = next(iter(graph))
 
         def dfs(vertex):
             visited.add(vertex)
@@ -112,9 +152,5 @@ class GraphValidator:
                 if neighbor not in visited:
                     dfs(neighbor)
 
-        # Начинаем с первой вершины
-        start_vertex = next(iter(graph))
         dfs(start_vertex)
-
-        # Проверяем, что все вершины были посещены
         return len(visited) == len(graph)
