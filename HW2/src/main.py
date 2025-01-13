@@ -1,7 +1,9 @@
 import tkinter as tk
 from tkinter import messagebox
-from Kruskal import Kruskal
-from Prim import Prim
+from Kruskal import Kruskal, AsymmetricEdgeError, InvalidWeightError, DisconnectedGraphError, IsolatedVertexError, \
+    EmptyGraphError
+from Prim import Prim, AsymmetricEdgeError, InvalidWeightError, DisconnectedGraphError, IsolatedVertexError, \
+    EmptyGraphError
 
 class MSTApp:
     def __init__(self, root):
@@ -47,43 +49,69 @@ class MSTApp:
         try:
             # Очищаем предыдущий результат
             self.result_text.delete(1.0, tk.END)
-            
+
             # Пытаемся преобразовать введенный текст в словарь
             try:
                 graph = eval(self.graph_entry.get())
             except:
-                raise ValueError("Неверный формат ввода. Проверьте синтаксис графа.")
+                self.show_error(
+                    "Ошибка формата",
+                    "Неверный формат ввода графа",
+                    "График должен быть представлен в виде словаря словарей\n\n" +
+                    "Пример:\n{'A': {'B': 1, 'C': 2}, 'B': {'A': 1, 'C': 3}, 'C': {'A': 2, 'B': 3}}"
+                )
+                return
 
             if not isinstance(graph, dict):
-                raise ValueError("Введенные данные не являются словарем")
+                self.show_error(
+                    "Ошибка типа данных",
+                    "Введенные данные не являются словарем",
+                    "Используйте формат словаря для представления графа"
+                )
+                return
 
-            algorithm = self.algorithm_var.get()
-            if algorithm == "Kruskal":
-                mst_algorithm = Kruskal(graph)
-            elif algorithm == "Prim":
-                mst_algorithm = Prim(graph)
-            else:
-                raise ValueError("Неизвестный алгоритм")
+            # Создаем и запускаем выбранный алгоритм
+            try:
+                algorithm = self.algorithm_var.get()
+                if algorithm == "Kruskal":
+                    mst_algorithm = Kruskal(graph)
+                else:
+                    mst_algorithm = Prim(graph)
 
-            # Запускаем алгоритм
-            mst, total_cost = mst_algorithm.min_spanning_tree()
+                mst, total_cost = mst_algorithm.min_spanning_tree()
 
-            # Форматируем вывод результата
+            except EmptyGraphError as e:
+                self.show_error("Пустой граф", str(e), e.details)
+                return
+            except IsolatedVertexError as e:
+                self.show_error("Изолированная вершина", str(e), e.details)
+                return
+            except DisconnectedGraphError as e:
+                self.show_error("Несвязный граф", str(e), e.details)
+                return
+            except InvalidWeightError as e:
+                self.show_error("Некорректный вес", str(e), e.details)
+                return
+            except AsymmetricEdgeError as e:
+                self.show_error("Несимметричное ребро", str(e), e.details)
+                return
+
+            # Выводим результат
+            self.result_text.insert(tk.END, "✅ Успешно!\n\n")
+            self.result_text.insert(tk.END, f"Использован алгоритм: {algorithm}\n\n")
             self.result_text.insert(tk.END, "Минимальное остовное дерево:\n")
-            self.result_text.insert(tk.END, "="*50 + "\n")
+            self.result_text.insert(tk.END, "=" * 50 + "\n")
             for edge in mst:
                 self.result_text.insert(tk.END, f"Ребро: {edge[0]} -- {edge[1]}, Вес: {edge[2]}\n")
-            self.result_text.insert(tk.END, "="*50 + "\n")
+            self.result_text.insert(tk.END, "=" * 50 + "\n")
             self.result_text.insert(tk.END, f"Общая стоимость: {total_cost}\n")
 
         except Exception as e:
-            error_message = f"Ошибка: {str(e)}\n\n"
-            error_message += "Пример корректного формата ввода:\n"
-            error_message += "{'A': {'B': 1, 'C': 2}, 'B': {'A': 1, 'C': 3}, 'C': {'A': 2, 'B': 3}}"
-            
-            self.result_text.delete(1.0, tk.END)
-            self.result_text.insert(tk.END, error_message)
-            messagebox.showerror("Ошибка", str(e))
+            self.show_error(
+                "Неизвестная ошибка",
+                str(e),
+                "Проверьте формат ввода и попробуйте снова"
+            )
 
 
 if __name__ == "__main__":
