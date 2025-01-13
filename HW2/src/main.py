@@ -65,6 +65,51 @@ class MSTApp:
 
         except Exception as e:
             messagebox.showerror("Ошибка", str(e))
+            
+    #Предлагаю реализовать этот метод так
+    """
+    def run_algorithm(self):
+        try:
+            # Очищаем предыдущий результат
+            self.result_text.delete(1.0, tk.END)
+            
+            # Пытаемся преобразовать введенный текст в словарь
+            try:
+                graph = eval(self.graph_entry.get())
+            except:
+                raise ValueError("Неверный формат ввода. Проверьте синтаксис графа.")
+
+            if not isinstance(graph, dict):
+                raise ValueError("Введенные данные не являются словарем")
+
+            algorithm = self.algorithm_var.get()
+            if algorithm == "Kruskal":
+                mst_algorithm = Kruskal(graph)
+            elif algorithm == "Prim":
+                mst_algorithm = Prim(graph)
+            else:
+                raise ValueError("Неизвестный алгоритм")
+
+            # Запускаем алгоритм
+            mst, total_cost = mst_algorithm.min_spanning_tree()
+
+            # Форматируем вывод результата
+            self.result_text.insert(tk.END, "Минимальное остовное дерево:\n")
+            self.result_text.insert(tk.END, "="*50 + "\n")
+            for edge in mst:
+                self.result_text.insert(tk.END, f"Ребро: {edge[0]} -- {edge[1]}, Вес: {edge[2]}\n")
+            self.result_text.insert(tk.END, "="*50 + "\n")
+            self.result_text.insert(tk.END, f"Общая стоимость: {total_cost}\n")
+
+        except Exception as e:
+            error_message = f"Ошибка: {str(e)}\n\n"
+            error_message += "Пример корректного формата ввода:\n"
+            error_message += "{'A': {'B': 1, 'C': 2}, 'B': {'A': 1, 'C': 3}, 'C': {'A': 2, 'B': 3}}"
+            
+            self.result_text.delete(1.0, tk.END)
+            self.result_text.insert(tk.END, error_message)
+            messagebox.showerror("Ошибка", str(e))
+    """
 
 if __name__ == "__main__":
     root = tk.Tk()
