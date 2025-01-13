@@ -45,31 +45,6 @@ class MSTApp:
 
     def run_algorithm(self):
         try:
-            graph = eval(self.graph_entry.get())
-            if not isinstance(graph, dict):
-                raise ValueError("Введенные данные не являются словарем")
-
-            algorithm = self.algorithm_var.get()
-            if algorithm == "Kruskal":
-                mst_algorithm = Kruskal(graph)
-            elif algorithm == "Prim":
-                mst_algorithm = Prim(graph)
-            else:
-                raise ValueError("Неизвестный алгоритм")
-
-            mst, total_cost = mst_algorithm.min_spanning_tree()
-
-            # Вывод результата
-            self.result_text.delete(1.0, tk.END)
-            self.result_text.insert(tk.END, f"Минимальное остовное дерево:\n{mst}\nОбщая стоимость: {total_cost}\n")
-
-        except Exception as e:
-            messagebox.showerror("Ошибка", str(e))
-            
-    #Предлагаю реализовать этот метод так
-    """
-    def run_algorithm(self):
-        try:
             # Очищаем предыдущий результат
             self.result_text.delete(1.0, tk.END)
             
@@ -109,7 +84,7 @@ class MSTApp:
             self.result_text.delete(1.0, tk.END)
             self.result_text.insert(tk.END, error_message)
             messagebox.showerror("Ошибка", str(e))
-    """
+
 
 if __name__ == "__main__":
     root = tk.Tk()
